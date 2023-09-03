@@ -1,14 +1,10 @@
 import os
 import numpy as np
 
-def importDS(filename, forVocab=False):
+def importDS(filename):
     with open("./datasets/" + filename) as f:
         data = f.readlines()
-
-        if forVocab == True:
-            data = [line.replace(".", " . ").replace("&quot;", " \" ").replace(",", " , ").replace(" ##AT##-##AT## ", " ").replace(" &apos;", " ' ").strip() for line in data]
-        else:
-            data = [line.replace("&quot;", "\"").replace(" ##AT##-##AT## ", " ").replace(" &apos;", "'").strip() for line in data]
+        data = [line.replace(".", " . ").replace("&#", "").replace("&quot;", " \" ").replace(",", " , ").replace(" ##AT##-##AT## ", " ").replace(" &apos;", " ' ").strip() for line in data]
     
     return data
 
@@ -68,8 +64,11 @@ def convertToSentence(words):
 
 if __name__ == "__main__":
 
-    ds = importDS("ENG-DEU/test2015.en", True)
-    vocab, revVocab = buildVocab([ds])
-    print(word2Vec(ds[0], vocab,output="int"))
-    print(vec2Word(word2Vec(ds[0], vocab,output="int"), revVocab, "int"))
+    eng_ds = importDS("ENG-DEU/test2015.en")
+    deu_ds = importDS("ENG-DEU/test2015.de")
+    
+    eng_vocab, eng_revVocab = buildVocab([eng_ds])
+    deu_vocab, deu_revVocab = buildVocab([deu_ds])
+    print(word2Vec(deu_ds[1222], deu_vocab,output="int"))
+    print(vec2Word(word2Vec(deu_ds[1222], deu_vocab,output="int"), deu_revVocab, "int"))
     
