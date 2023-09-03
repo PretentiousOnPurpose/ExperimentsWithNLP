@@ -23,13 +23,14 @@ def buildVocab(dataList):
     splitWords = []
 
     for line in data:
-        splitWords.append(line.split(" "))
+        splitWords = splitWords + line.split(" ")
     
     splitWords = set(splitWords)
     for idx, word in enumerate(splitWords):
         vocab[word] = idx
 
     revVocab = dict([(value, key) for key, value in vocab.items()])
+    print("Number of entries in vocab: " + str(len(vocab.keys())))
 
     return vocab, revVocab
 
@@ -63,5 +64,12 @@ def convertToSentence(words):
         else:
             line = line + " " + word
 
+    return line
+
 if __name__ == "__main__":
-    print(importDS("ENG-DEU/test2015.en")[0])
+
+    ds = importDS("ENG-DEU/test2015.en", True)
+    vocab, revVocab = buildVocab([ds])
+    print(word2Vec(ds[0], vocab,output="int"))
+    print(vec2Word(word2Vec(ds[0], vocab,output="int"), revVocab, "int"))
+    
