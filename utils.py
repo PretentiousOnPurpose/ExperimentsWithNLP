@@ -25,6 +25,9 @@ def buildVocab(dataList):
     for idx, word in enumerate(splitWords):
         vocab[word] = idx
 
+    vocab["<START>"] = len(vocab.keys())
+    vocab["<END>"] = len(vocab.keys())
+
     revVocab = dict([(value, key) for key, value in vocab.items()])
     print("Number of entries in vocab: " + str(len(vocab.keys())))
 
@@ -62,13 +65,35 @@ def convertToSentence(words):
 
     return line
 
-if __name__ == "__main__":
+def genTrainingDataset(eng_ds, deu_ds, eng_vocab, deu_vocab, feature_len):
+    ENC_INPUT_MAXLEN = np.max(np.array([len(line.split()) for line in eng_ds]))
+    DEC_INPUT_MAXLEN = np.max(np.array([len(line.split()) for line in deu_ds])) + 1
 
-    eng_ds = importDS("ENG-DEU/test2015.en")
-    deu_ds = importDS("ENG-DEU/test2015.de")
+    enc_input_data = np.zeros((len(eng_ds), ENC_INPUT_MAXLEN, feature_len))
+    dec_input_data = np.zeros((len(deu_ds), DEC_INPUT_MAXLEN, feature_len))
+    dec_target_data = np.zeros((len(deu_ds), DEC_INPUT_MAXLEN, feature_len))
+
+    for idx, (input_data, target_data) in enumerate(zip(eng_ds, deu_ds)):
+        enc_input_data[idx, :, :] = word2Vec(input_data, eng_vocab, output="int")
+
+        dec_input_data[idx, 1:, :] = word2Vec(target_data, deu_vocab, output="int")
+        dec_target_data[idx, :-1, :] = word2Vec(target_data, deu_vocab, output="int")
+
+        dec_input_data[idx, 0, :] = eng_vocab["<START>"]
+        dec_target_data[idx, -1, :] = eng_vocab["<END>"]
+
+    return [enc_input_data, dec_input_data, dec_target_data]
+
+
+# ONLY FOR TESTING------------
+
+# if __name__ == "__main__":
+#     eng_ds = importDS("ENG-DEU/test2015.en")
+#     deu_ds = importDS("ENG-DEU/test2015.de")
     
-    eng_vocab, eng_revVocab = buildVocab([eng_ds])
-    deu_vocab, deu_revVocab = buildVocab([deu_ds])
-    print(word2Vec(deu_ds[1222], deu_vocab,output="int"))
-    print(vec2Word(word2Vec(deu_ds[1222], deu_vocab,output="int"), deu_revVocab, "int"))
+#     eng_vocab, eng_revVocab = buildVocab([eng_ds])
+#     deu_vocab, deu_revVocab = buildVocab([deu_ds])
+
+#     [enc_input_data, dec_input_data, dec_target_data] = genTrainingDataset(eng_ds, deu_ds, eng_vocab, deu_vocab, 1)
+
     
